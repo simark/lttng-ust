@@ -53,13 +53,17 @@ extern "C" {
 
 #define tracepoint(provider, name, ...)					    \
 	do {								    \
+		asm(".pushsection __lttng_tourlou, \"a\", @progbits\n" \
+			".8byte __tracepoint_" #provider "___" #name "\n" \
+			".8byte 456f\n" \
+		    " .popsection\n" \
+			"456:\n"); \
 		STAP_PROBEV(provider, name, ## __VA_ARGS__);		    \
 		if (tracepoint_enabled(provider, name)) 		    \
 			do_tracepoint(provider, name, __VA_ARGS__);	    \
 	} while (0)
 
 #define TP_ARGS(...)       __VA_ARGS__
-
 /*
  * TP_ARGS takes tuples of type, argument separated by a comma.
  * It can take up to 10 tuples (which means that less than 10 tuples is
@@ -323,6 +327,13 @@ extern struct lttng_ust_tracepoint * const __start___tracepoints_ptrs[]
 	__attribute__((weak, visibility("hidden")));
 extern struct lttng_ust_tracepoint * const __stop___tracepoints_ptrs[]
 	__attribute__((weak, visibility("hidden")));
+extern void * const __start___lttng_tourlou[]
+	__attribute__((weak, visibility("hidden")));
+extern void * const __stop___lttng_tourlou[]
+	__attribute__((weak, visibility("hidden")));
+
+static const void * const start__lttng_tourlou __attribute__((used)) = __start___lttng_tourlou;
+static const void * const stop__lttng_tourlou __attribute__((used)) = __stop___lttng_tourlou;
 
 /*
  * When TRACEPOINT_PROBE_DYNAMIC_LINKAGE is defined, we do not emit a
